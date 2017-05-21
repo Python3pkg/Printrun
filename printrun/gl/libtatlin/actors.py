@@ -223,7 +223,7 @@ class Model(object):
         'z': AXIS_Z,
     }
 
-    axis_letter_map = dict([(v, k) for k, v in letter_axis_map.items()])
+    axis_letter_map = dict([(v, k) for k, v in list(letter_axis_map.items())])
 
     lock = None
 

@@ -195,17 +195,17 @@ class showstl(wx.Window):
             dc = wx.ClientDC(self)
         scale = 2
         dc.SetPen(wx.Pen(wx.Colour(100, 100, 100)))
-        for i in xrange(20):
+        for i in range(20):
             dc.DrawLine(0, i * scale * 10, 400, i * scale * 10)
             dc.DrawLine(i * scale * 10, 0, i * scale * 10, 400)
         dc.SetPen(wx.Pen(wx.Colour(0, 0, 0)))
-        for i in xrange(4):
+        for i in range(4):
             dc.DrawLine(0, i * scale * 50, 400, i * scale * 50)
             dc.DrawLine(i * scale * 50, 0, i * scale * 50, 400)
         dc.SetBrush(wx.Brush(wx.Colour(128, 255, 128)))
         dc.SetPen(wx.Pen(wx.Colour(128, 128, 128)))
         dcs = wx.MemoryDC()
-        for m in self.parent.models.values():
+        for m in list(self.parent.models.values()):
             b = m.bitmap
             im = b.ConvertToImage()
             imgc = wx.Point(im.GetWidth() / 2, im.GetHeight() / 2)
@@ -335,7 +335,7 @@ class StlPlaterPanel(PlaterPanel):
         best_match = None
         best_facet = None
         best_dist = float("inf")
-        for key, model in self.models.iteritems():
+        for key, model in self.models.items():
             transformation = transformation_matrix(model)
             transformed = model.transform(transformation)
             if not transformed.intersect_box(ray_near, ray_far):
@@ -427,7 +427,7 @@ class StlPlaterPanel(PlaterPanel):
         path = os.path.split(name)[0]
         self.basedir = path
         if name.lower().endswith(".stl"):
-            for model in self.models.values():
+            for model in list(self.models.values()):
                 if model.filename == name:
                     newmodel = copy(model)
                     newmodel.offsets = list(model.offsets)
@@ -458,7 +458,7 @@ class StlPlaterPanel(PlaterPanel):
     def export_to(self, name):
         with open(name.replace(".", "_") + ".scad", "w") as sf:
             facets = []
-            for model in self.models.values():
+            for model in list(self.models.values()):
                 r = model.rot
                 o = model.offsets
                 co = model.centeroffset
@@ -478,7 +478,7 @@ class StlPlaterPanel(PlaterPanel):
         if self.simarrange_path:
             try:
                 self.autoplate_simarrange()
-            except Exception, e:
+            except Exception as e:
                 logging.warning(_("Failed to use simarrange for plating, "
                                   "falling back to the standard method. "
                                   "The error was: ") + e)
@@ -489,7 +489,7 @@ class StlPlaterPanel(PlaterPanel):
     def autoplate_simarrange(self):
         logging.info(_("Autoplating using simarrange"))
         models = dict(self.models)
-        files = [model.filename for model in models.values()]
+        files = [model.filename for model in list(models.values())]
         command = [self.simarrange_path, "--dryrun",
                    "-m",  # Pack around center
                    "-x", str(int(self.build_dimensions[0])),
@@ -510,7 +510,7 @@ class StlPlaterPanel(PlaterPanel):
                 x = float(bits[1])
                 y = float(bits[2])
                 rot = -float(bits[3])
-                for name, model in models.items():
+                for name, model in list(models.items()):
                     # FIXME: not sure this is going to work superwell with utf8
                     if model.filename == filename:
                         model.offsets[0] = x + self.build_dimensions[3]

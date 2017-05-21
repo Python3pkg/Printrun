@@ -109,7 +109,7 @@ class ZButtons(BufferedCanvas):
             # Draw label overlays
             gc.SetPen(wx.Pen(wx.Colour(255, 255, 255, 128), 1))
             gc.SetBrush(wx.Brush(wx.Colour(255, 255, 255, 128 + 64)))
-            for idx, kpos in self.label_overlay_positions.items():
+            for idx, kpos in list(self.label_overlay_positions.items()):
                 if idx != self.range:
                     r = kpos[2]
                     gc.DrawEllipse(self.center[0] - kpos[0] - r, self.center[1] - kpos[1] - r, r * 2, r * 2)

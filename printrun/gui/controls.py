@@ -129,13 +129,13 @@ def add_extra_controls(self, root, parentpanel, extra_buttons = None, mini_mode 
 
     # Hotend temp
     add("htemp_label", wx.StaticText(parentpanel, -1, _("Heat:")), flag = wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-    htemp_choices = [root.temps[i] + " (" + i + ")" for i in sorted(root.temps.keys(), key = lambda x:root.temps[x])]
+    htemp_choices = [root.temps[i] + " (" + i + ")" for i in sorted(list(root.temps.keys()), key = lambda x:root.temps[x])]
 
     root.settoff = make_button(parentpanel, _("Off"), lambda e: root.do_settemp("off"), _("Switch Hotend Off"), size = (38, -1), style = wx.BU_EXACTFIT)
     root.printerControls.append(root.settoff)
     add("htemp_off", root.settoff)
 
-    if root.settings.last_temperature not in map(float, root.temps.values()):
+    if root.settings.last_temperature not in list(map(float, list(root.temps.values()))):
         htemp_choices = [str(root.settings.last_temperature)] + htemp_choices
     root.htemp = wx.ComboBox(parentpanel, -1, choices = htemp_choices,
                              style = wx.CB_DROPDOWN, size = (80, -1))
@@ -149,13 +149,13 @@ def add_extra_controls(self, root, parentpanel, extra_buttons = None, mini_mode 
 
     # Bed temp
     add("btemp_label", wx.StaticText(parentpanel, -1, _("Bed:")), flag = wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-    btemp_choices = [root.bedtemps[i] + " (" + i + ")" for i in sorted(root.bedtemps.keys(), key = lambda x:root.temps[x])]
+    btemp_choices = [root.bedtemps[i] + " (" + i + ")" for i in sorted(list(root.bedtemps.keys()), key = lambda x:root.temps[x])]
 
     root.setboff = make_button(parentpanel, _("Off"), lambda e: root.do_bedtemp("off"), _("Switch Heated Bed Off"), size = (38, -1), style = wx.BU_EXACTFIT)
     root.printerControls.append(root.setboff)
     add("btemp_off", root.setboff)
 
-    if root.settings.last_bed_temperature not in map(float, root.bedtemps.values()):
+    if root.settings.last_bed_temperature not in list(map(float, list(root.bedtemps.values()))):
         btemp_choices = [str(root.settings.last_bed_temperature)] + btemp_choices
     root.btemp = wx.ComboBox(parentpanel, -1, choices = btemp_choices,
                              style = wx.CB_DROPDOWN, size = (80, -1))
@@ -375,7 +375,7 @@ def add_extra_controls(self, root, parentpanel, extra_buttons = None, mini_mode 
         ebuttonspanel.SetSizer(ebuttonssizer)
         add("ebuttons", ebuttonspanel, flag = wx.EXPAND)
     else:
-        for key, btn in extra_buttons.items():
+        for key, btn in list(extra_buttons.items()):
             add(key, btn, flag = wx.EXPAND)
 
 class ControlsSizer(wx.GridBagSizer):
@@ -403,7 +403,7 @@ class ControlsSizer(wx.GridBagSizer):
         span_mapping = {"extrude": (1, 2),
                         "reverse": (1, 3),
                         }
-        for key, desc in root.cpbuttons.items():
+        for key, desc in list(root.cpbuttons.items()):
             if not standalone_mode and key in ["extrude", "reverse"]:
                 continue
             panel = lltspanel if key == "motorsoff" else parentpanel

@@ -17,14 +17,15 @@
 
 __version__ = "2015.03.10"
 
-from serialWrapper import Serial, SerialException, PARITY_ODD, PARITY_NONE
+from .serialWrapper import Serial, SerialException, PARITY_ODD, PARITY_NONE
 from select import error as SelectError
 import threading
-from Queue import Queue, Empty as QueueEmpty
+from queue import Queue, Empty as QueueEmpty
 import time
 import platform
 import os
 import sys
+from functools import reduce
 stdin, stdout, stderr = sys.stdin, sys.stdout, sys.stderr
 reload(sys).setdefaultencoding('utf8')
 sys.stdin, sys.stdout, sys.stderr = stdin, stdout, stderr
@@ -246,21 +247,21 @@ class printcore():
             return line
         except SelectError as e:
             if 'Bad file descriptor' in e.args[1]:
-                self.logError(_(u"Can't read from printer (disconnected?) (SelectError {0}): {1}").format(e.errno, decode_utf8(e.strerror)))
+                self.logError(_("Can't read from printer (disconnected?) (SelectError {0}): {1}").format(e.errno, decode_utf8(e.strerror)))
                 return None
             else:
-                self.logError(_(u"SelectError ({0}): {1}").format(e.errno, decode_utf8(e.strerror)))
+                self.logError(_("SelectError ({0}): {1}").format(e.errno, decode_utf8(e.strerror)))
                 raise
         except SerialException as e:
-            self.logError(_(u"Can't read from printer (disconnected?) (SerialException): {0}").format(decode_utf8(str(e))))
+            self.logError(_("Can't read from printer (disconnected?) (SerialException): {0}").format(decode_utf8(str(e))))
             return None
         except socket.error as e:
-            self.logError(_(u"Can't read from printer (disconnected?) (Socket error {0}): {1}").format(e.errno, decode_utf8(e.strerror)))
+            self.logError(_("Can't read from printer (disconnected?) (Socket error {0}): {1}").format(e.errno, decode_utf8(e.strerror)))
             return None
         except OSError as e:
             if e.errno == errno.EAGAIN:  # Not a real error, no data was available
                 return ""
-            self.logError(_(u"Can't read from printer (disconnected?) (OS Error {0}): {1}").format(e.errno, e.strerror))
+            self.logError(_("Can't read from printer (disconnected?) (OS Error {0}): {1}").format(e.errno, e.strerror))
             return None
 
     def _listen_can_continue(self):
@@ -361,7 +362,7 @@ class printcore():
                 time.sleep(0.001)
 
     def _checksum(self, command):
-        return reduce(lambda x, y: x ^ y, map(ord, command))
+        return reduce(lambda x, y: x ^ y, list(map(ord, command)))
 
     def startprint(self, gcode, startindex = 0):
         """Start a print, gcode is an array of gcode commands.
@@ -417,7 +418,7 @@ class printcore():
         # might be calling it from the thread itself
         try:
             self.print_thread.join()
-        except RuntimeError, e:
+        except RuntimeError as e:
             if e.message == "cannot join current thread":
                 pass
             else:
@@ -616,14 +617,14 @@ class printcore():
                 self.writefailures = 0
             except socket.error as e:
                 if e.errno is None:
-                    self.logError(_(u"Can't write to printer (disconnected ?):") +
+                    self.logError(_("Can't write to printer (disconnected ?):") +
                                   "\n" + traceback.format_exc())
                 else:
-                    self.logError(_(u"Can't write to printer (disconnected?) (Socket error {0}): {1}").format(e.errno, decode_utf8(e.strerror)))
+                    self.logError(_("Can't write to printer (disconnected?) (Socket error {0}): {1}").format(e.errno, decode_utf8(e.strerror)))
                 self.writefailures += 1
             except SerialException as e:
-                self.logError(_(u"Can't write to printer (disconnected?) (SerialException): {0}").format(decode_utf8(str(e))))
+                self.logError(_("Can't write to printer (disconnected?) (SerialException): {0}").format(decode_utf8(str(e))))
                 self.writefailures += 1
             except RuntimeError as e:
-                self.logError(_(u"Socket connection broken, disconnected. ({0}): {1}").format(e.errno, decode_utf8(e.strerror)))
+                self.logError(_("Socket connection broken, disconnected. ({0}): {1}").format(e.errno, decode_utf8(e.strerror)))
                 self.writefailures += 1

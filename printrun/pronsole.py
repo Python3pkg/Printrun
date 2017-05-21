@@ -45,7 +45,7 @@ from .rpc import ProntRPC
 
 if os.name == "nt":
     try:
-        import _winreg
+        import winreg
     except:
         pass
 READLINE = True
@@ -213,7 +213,7 @@ class pronsole(cmd.Cmd):
                 else:
                     if self.use_rawinput:
                         try:
-                            line = raw_input(self.prompt)
+                            line = input(self.prompt)
                         except EOFError:
                             self.log("")
                             self.do_exit("")
@@ -242,7 +242,7 @@ class pronsole(cmd.Cmd):
                     pass
 
     def confirm(self):
-        y_or_n = raw_input("y/n: ")
+        y_or_n = input("y/n: ")
         if y_or_n == "y":
             return True
         elif y_or_n != "n":
@@ -250,11 +250,11 @@ class pronsole(cmd.Cmd):
         return False
 
     def log(self, *msg):
-        msg = u"".join(unicode(i) for i in msg)
+        msg = "".join(str(i) for i in msg)
         logging.info(msg)
 
     def logError(self, *msg):
-        msg = u"".join(unicode(i) for i in msg)
+        msg = "".join(str(i) for i in msg)
         logging.error(msg)
         if not self.settings.error_command:
             return
@@ -395,7 +395,7 @@ class pronsole(cmd.Cmd):
 
     def complete_macro(self, text, line, begidx, endidx):
         if (len(line.split()) == 2 and line[-1] != " ") or (len(line.split()) == 1 and line[-1] == " "):
-            return [i for i in self.macros.keys() if i.startswith(text)]
+            return [i for i in list(self.macros.keys()) if i.startswith(text)]
         elif len(line.split()) == 3 or (len(line.split()) == 2 and line[-1] == " "):
             return [i for i in ["/D", "/S"] + self.completenames(text) if i.startswith(text)]
         else:
@@ -460,7 +460,7 @@ class pronsole(cmd.Cmd):
             lines = macro_def.split("\n")
             for l in lines:
                 pycode += self.compile_macro_line(l)
-        exec pycode
+        exec(pycode)
         return macro
 
     def start_macro(self, macro_name, prev_definition = "", suppress_instructions = False):
@@ -473,7 +473,7 @@ class pronsole(cmd.Cmd):
         self.prompt = self.promptf()
 
     def delete_macro(self, macro_name):
-        if macro_name in self.macros.keys():
+        if macro_name in list(self.macros.keys()):
             delattr(self.__class__, "do_" + macro_name)
             del self.macros[macro_name]
             self.log("Macro '" + macro_name + "' removed")
@@ -484,7 +484,7 @@ class pronsole(cmd.Cmd):
 
     def do_macro(self, args):
         if args.strip() == "":
-            self.print_topics("User-defined macros", map(str, self.macros.keys()), 15, 80)
+            self.print_topics("User-defined macros", list(map(str, list(self.macros.keys()))), 15, 80)
             return
         arglist = args.split(None, 1)
         macro_name = arglist[0]
@@ -518,7 +518,7 @@ class pronsole(cmd.Cmd):
         self.log("'macro' without arguments displays list of defined macros")
 
     def subhelp_macro(self, macro_name):
-        if macro_name in self.macros.keys():
+        if macro_name in list(self.macros.keys()):
             macro_def = self.macros[macro_name]
             if "\n" in macro_def:
                 self.log("Macro '" + macro_name + "' defined as:")
@@ -540,7 +540,7 @@ class pronsole(cmd.Cmd):
                 self.save_in_rc("set " + var, "set %s %s" % (var, value))
         except AttributeError:
             logging.debug(_("Unknown variable '%s'") % var)
-        except ValueError, ve:
+        except ValueError as ve:
             if hasattr(ve, "from_validator"):
                 self.logError(_("Bad value %s for variable '%s': %s") % (str, var, ve.args[0]))
             else:
@@ -648,7 +648,7 @@ class pronsole(cmd.Cmd):
             #    self.log("Saved '"+key+"' to '"+self.rc_filename+"'")
             # else:
             #    self.log("Removed '"+key+"' from '"+self.rc_filename+"'")
-        except Exception, e:
+        except Exception as e:
             self.logError("Saving failed for ", key + ":", str(e))
         finally:
             del rci, rco
@@ -691,8 +691,8 @@ class pronsole(cmd.Cmd):
             try:
                 self.load_rc(config)
             except EnvironmentError as err:
-                print ("ERROR: Unable to load configuration file: %s" %
-                       str(err)[10:])
+                print(("ERROR: Unable to load configuration file: %s" %
+                       str(err)[10:]))
                 sys.exit(1)
         if not self.rc_loaded:
             self.load_default_rc()
@@ -795,17 +795,17 @@ class pronsole(cmd.Cmd):
         baselist = []
         if os.name == "nt":
             try:
-                key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, "HARDWARE\\DEVICEMAP\\SERIALCOMM")
+                key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, "HARDWARE\\DEVICEMAP\\SERIALCOMM")
                 i = 0
                 while(1):
-                    baselist += [_winreg.EnumValue(key, i)[1]]
+                    baselist += [winreg.EnumValue(key, i)[1]]
                     i += 1
             except:
                 pass
 
         for g in ['/dev/ttyUSB*', '/dev/ttyACM*', "/dev/tty.*", "/dev/cu.*", "/dev/rfcomm*"]:
             baselist += glob.glob(g)
-        return filter(self._bluetoothSerialFilter, baselist)
+        return list(filter(self._bluetoothSerialFilter, baselist))
 
     def _bluetoothSerialFilter(self, serial):
         return not ("Bluetooth" in serial or "FireFly" in serial)
@@ -935,7 +935,7 @@ class pronsole(cmd.Cmd):
                             blocking = True)
                 self.log(_("Loading sliced file."))
                 self.do_load(l[0].replace(".stl", "_export.gcode"))
-        except Exception, e:
+        except Exception as e:
             self.logError(_("Slicing failed: %s") % e)
 
     def complete_slice(self, text, line, begidx, endidx):
@@ -1347,7 +1347,7 @@ class pronsole(cmd.Cmd):
 
     def do_settemp(self, l):
         l = l.lower().replace(", ", ".")
-        for i in self.temps.keys():
+        for i in list(self.temps.keys()):
             l = l.replace(i, self.temps[i])
         try:
             f = float(l)
@@ -1371,17 +1371,17 @@ class pronsole(cmd.Cmd):
     def help_settemp(self):
         self.log(_("Sets the hotend temperature to the value entered."))
         self.log(_("Enter either a temperature in celsius or one of the following keywords"))
-        self.log(", ".join([i + "(" + self.temps[i] + ")" for i in self.temps.keys()]))
+        self.log(", ".join([i + "(" + self.temps[i] + ")" for i in list(self.temps.keys())]))
 
     def complete_settemp(self, text, line, begidx, endidx):
         if (len(line.split()) == 2 and line[-1] != " ") or (len(line.split()) == 1 and line[-1] == " "):
-            return [i for i in self.temps.keys() if i.startswith(text)]
+            return [i for i in list(self.temps.keys()) if i.startswith(text)]
 
     def do_bedtemp(self, l):
         f = None
         try:
             l = l.lower().replace(", ", ".")
-            for i in self.bedtemps.keys():
+            for i in list(self.bedtemps.keys()):
                 l = l.replace(i, self.bedtemps[i])
             f = float(l)
         except:
@@ -1398,11 +1398,11 @@ class pronsole(cmd.Cmd):
     def help_bedtemp(self):
         self.log(_("Sets the bed temperature to the value entered."))
         self.log(_("Enter either a temperature in celsius or one of the following keywords"))
-        self.log(", ".join([i + "(" + self.bedtemps[i] + ")" for i in self.bedtemps.keys()]))
+        self.log(", ".join([i + "(" + self.bedtemps[i] + ")" for i in list(self.bedtemps.keys())]))
 
     def complete_bedtemp(self, text, line, begidx, endidx):
         if (len(line.split()) == 2 and line[-1] != " ") or (len(line.split()) == 1 and line[-1] == " "):
-            return [i for i in self.bedtemps.keys() if i.startswith(text)]
+            return [i for i in list(self.bedtemps.keys()) if i.startswith(text)]
 
     def do_monitor(self, l):
         interval = 5
